@@ -5,7 +5,7 @@ Supabase의 PostgreSQL, 이메일·비밀번호 인증, Realtime을 사용한다
 ## 운영 배포: 기본 이메일 인증 흐름
 
 1. Supabase Free 프로젝트를 생성한다. 무료 한도와 비활성 프로젝트 정책은 [공식 요금 안내](https://supabase.com/pricing)에서 확인한다.
-2. SQL Editor 또는 Supabase migration으로 `migrations/202610220001_shared_notes.sql`을 한 번 적용한다. 기존 앱의 DB 대신 새 프로젝트에 적용하는 것을 전제로 한다.
+2. SQL Editor 또는 Supabase migration으로 `migrations/202610220001_shared_notes.sql`을 한 번 적용한 다음 `migrations/202610220002_harden_platform_event_trigger.sql`을 적용한다. 기존 앱의 DB 대신 새 프로젝트에 적용하는 것을 전제로 한다. 두 번째 파일은 플랫폼의 `public.rls_auto_enable()` 이벤트 트리거 함수가 있을 때만 일반 클라이언트의 직접 실행 권한을 회수하며, 자동 RLS 기능은 유지한다. 해당 함수가 없는 로컬 DB에서는 아무것도 바꾸지 않고 반복 적용해도 안전하다.
 3. Authentication → Email에서 회원가입과 **Confirm email을 활성화**한다. 이메일 변경은 이전·새 이메일 양쪽 확인을 활성화한다. **Confirm email을 끄면 Supabase가 이메일을 자동 확인 처리하며 이것은 이메일 소유 증명이 아니다.** SMTP 없는 운영을 선택하더라도 아래 절차대로 신원이 확인된 관리자 사용자 ID를 먼저 예약하기 전에는 이 설정을 끄지 않는다.
 4. Authentication → URL Configuration의 Site URL을 실제 `https://…vercel.app` 주소로 설정한다. 이 주소와 앱에서 사용하는 인증 리다이렉트 경로를 Redirect URLs에 등록한다. 임의의 외부 URL 또는 광범위한 wildcard를 운영 설정에 추가하지 않는다.
 5. 일반 사용자의 회원가입 인증과 비밀번호 재설정을 위해 **Custom SMTP**를 구성한다. Supabase 기본 발송기는 프로젝트 팀원 이메일로만 발송하며 운영용 일반 회원가입 발송기로 사용할 수 없다. 이미 보유한 SMTP나 별도 무료 발송 한도가 있는 공급자를 연결해야 한다. SMTP 비밀번호는 Supabase 설정에만 저장한다. [공식 SMTP 안내](https://supabase.com/docs/guides/auth/auth-smtp)
