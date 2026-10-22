@@ -1,4 +1,4 @@
-# 모아노트
+# 로반 메모보드
 
 승인된 회원들이 함께 사용하는 한국어 공유 메모장입니다. React + TypeScript + Vite, Supabase PostgreSQL/Auth/Realtime, Vercel 배포로 구성합니다.
 
