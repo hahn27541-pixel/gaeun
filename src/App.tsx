@@ -32,7 +32,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { supabase, isConfigured } from "./lib/supabase";
+import { supabase, isConfigured, emailDeliveryEnabled } from "./lib/supabase";
 
 type Note = {
   id: string;
@@ -108,7 +108,9 @@ function errorText(error: unknown): string {
   if (message.includes("Invalid login credentials"))
     return "이메일 또는 비밀번호를 확인해 주세요.";
   if (message.includes("Email not confirmed"))
-    return "이메일 인증을 먼저 완료해 주세요. 받은 편지함을 확인해 주세요.";
+    return emailDeliveryEnabled
+      ? "이메일 인증을 먼저 완료해 주세요. 받은 편지함을 확인해 주세요."
+      : "계정 확인이 필요해요. 관리자에게 문의해 주세요.";
   if (message.includes("already registered"))
     return "이미 가입된 이메일이에요. 로그인해 주세요.";
   if (message.includes("rate limit") || message.includes("security purposes"))
@@ -182,7 +184,7 @@ function AuthScreen({
         if (error) throw error;
         onRecoveryDone();
       } else if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
@@ -191,12 +193,20 @@ function AuthScreen({
           },
         });
         if (error) throw error;
-        setSentEmail(email.trim());
+        setSentEmail(emailDeliveryEnabled ? email.trim() : "");
         setNotice({
           kind: "success",
-          text: "확인 메일을 보냈어요. 이메일 인증 후 로그인해 주세요. 기존 계정이라면 바로 로그인할 수 있어요.",
+          text: emailDeliveryEnabled
+            ? "확인 메일을 보냈어요. 이메일 인증 후 로그인해 주세요. 기존 계정이라면 바로 로그인할 수 있어요."
+            : data.session
+              ? "가입 신청이 완료되었어요. 관리자의 승인 후 메모를 이용할 수 있습니다."
+              : "가입 신청 결과를 확인해 주세요. 로그인할 수 없다면 관리자에게 문의해 주세요.",
         });
       } else if (mode === "reset") {
+        if (!emailDeliveryEnabled) {
+          setMode("login");
+          return;
+        }
         const { error } = await supabase.auth.resetPasswordForEmail(
           email.trim(),
           { redirectTo: window.location.origin + "/?auth=recovery" },
@@ -220,7 +230,7 @@ function AuthScreen({
     }
   }
   async function resend() {
-    if (!supabase || busy) return;
+    if (!supabase || busy || !emailDeliveryEnabled) return;
     setBusy(true);
     try {
       const { error } = await supabase.auth.resend({
@@ -297,7 +307,9 @@ function AuthScreen({
             {recovery
               ? "8자 이상의 비밀번호로 계정을 안전하게 보호하세요."
               : mode === "signup"
-                ? "이메일 인증과 관리자 승인 후 함께할 수 있어요."
+                ? emailDeliveryEnabled
+                  ? "이메일 인증과 관리자 승인 후 함께할 수 있어요."
+                  : "회원가입 후 관리자 승인을 받아 함께할 수 있어요."
                 : mode === "reset"
                   ? "가입한 이메일로 재설정 링크를 보내드릴게요."
                   : "로그인하고 우리 팀의 기록을 이어가세요."}
@@ -375,7 +387,7 @@ function AuthScreen({
                 />
               </label>
             )}
-            {mode === "login" && !recovery && (
+            {emailDeliveryEnabled && mode === "login" && !recovery && (
               <button
                 type="button"
                 className="text-button forgot-password"
@@ -407,7 +419,7 @@ function AuthScreen({
               )}
             </button>
           </form>
-          {sentEmail && mode === "signup" && (
+          {emailDeliveryEnabled && sentEmail && mode === "signup" && (
             <button
               className="text-button resend-button"
               disabled={busy}
@@ -1215,7 +1227,7 @@ export default function App() {
           ) : (
             <>
               <span className="gate-icon">
-                {!verified ? (
+                {!verified && emailDeliveryEnabled ? (
                   <Mail size={30} />
                 ) : state === "pending" ? (
                   <Clock3 size={30} />
@@ -1228,7 +1240,9 @@ export default function App() {
                 {accessError
                   ? "잠시 연결을 확인해 주세요"
                   : !verified
-                    ? "이메일을 확인해 주세요"
+                    ? emailDeliveryEnabled
+                      ? "이메일을 확인해 주세요"
+                      : "계정 확인이 필요해요"
                     : state === "rejected"
                       ? "가입 승인이 거절되었어요"
                       : state === "suspended"
@@ -1238,7 +1252,9 @@ export default function App() {
               <p>
                 {accessError ||
                   (!verified
-                    ? "가입한 이메일로 발송된 인증 링크를 열어 주세요."
+                    ? emailDeliveryEnabled
+                      ? "가입한 이메일로 발송된 인증 링크를 열어 주세요."
+                      : "아직 계정 확인이 완료되지 않았어요. 관리자에게 문의해 주세요."
                     : state === "rejected" || state === "suspended"
                       ? "이용 상태에 관한 사항은 최고관리자에게 문의해 주세요."
                       : "가입 신청이 완료되었어요. 관리자가 승인하면 우리 팀의 메모를 함께 작성할 수 있습니다.")}
@@ -1426,8 +1442,9 @@ export default function App() {
               <div>
                 <strong>관리자 승인 후 메모를 이용할 수 있어요</strong>
                 <p>
-                  이메일 인증을 마친 멤버를 승인해 주세요. 이용 정지 시 메모
-                  접근이 제한됩니다.
+                  {emailDeliveryEnabled
+                    ? "이메일 인증을 마친 멤버를 승인해 주세요. 이용 정지 시 메모 접근이 제한됩니다."
+                    : "이메일 소유 여부는 자동 확인되지 않아요. 가입자를 별도로 확인한 후 승인해 주세요. 이용 정지 시 메모 접근이 제한됩니다."}
                 </p>
               </div>
             </div>
@@ -1474,9 +1491,13 @@ export default function App() {
                       <span>{member.email}</span>
                       <small>
                         {dateLabel(member.created_at)} 가입 ·{" "}
-                        {member.email_verified
-                          ? "이메일 인증 완료"
-                          : "이메일 미인증"}
+                        {emailDeliveryEnabled
+                          ? member.email_verified
+                            ? "이메일 인증 완료"
+                            : "이메일 미인증"
+                          : member.email_verified
+                            ? "이메일 소유 확인 별도"
+                            : "계정 확인 필요 · 이메일 소유 확인 별도"}
                       </small>
                     </div>
                     <span className={"status-badge status-" + member.status}>
@@ -1491,7 +1512,9 @@ export default function App() {
                               disabled={busy || !member.email_verified}
                               title={
                                 !member.email_verified
-                                  ? "이메일 인증 후 승인할 수 있어요"
+                                  ? emailDeliveryEnabled
+                                    ? "이메일 인증 후 승인할 수 있어요"
+                                    : "계정 확인 후 승인할 수 있어요"
                                   : "멤버 승인"
                               }
                               onClick={() =>
