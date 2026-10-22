@@ -96,29 +96,31 @@ button:hover:not(:disabled) {
 .brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
 }
 .brand-symbol {
   display: grid;
   place-items: center;
   background: var(--teal);
   color: #fff;
-  width: 37px;
-  height: 39px;
-  border-radius: 11px 11px 11px 3px;
-  box-shadow: 0 2px 0 #20584a0b;
+  width: 35px;
+  height: 37px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px #20584a12;
 }
 .brand-name {
-  font-size: 19px;
-  letter-spacing: -0.7px;
-  line-height: 1.15;
-  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.65px;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .brand-name > span {
   display: block;
   font-family: "DM Sans", sans-serif;
-  font-size: 8px;
-  letter-spacing: 2.2px;
+  font-size: 6.5px;
+  letter-spacing: 1px;
   line-height: 1.7;
   font-weight: 600;
   color: #8a968f;
@@ -1095,9 +1097,12 @@ button:hover:not(:disabled) {
 }
 .auth-story .brand-name {
   color: #e7ecdd;
+  font-size: 20px;
 }
 .auth-story .brand-name > span {
   color: #a0b69a;
+  font-size: 7px;
+  letter-spacing: 1.4px;
 }
 .story-copy {
   margin: auto 0;
@@ -1112,10 +1117,10 @@ button:hover:not(:disabled) {
   color: #a3b897;
 }
 .story-copy > h1 {
-  font-size: clamp(30px, 3.45vw, 52px);
-  line-height: 1.48;
+  font-size: clamp(30px, 3.15vw, 46px);
+  line-height: 1.5;
   font-weight: 600;
-  letter-spacing: -2px;
+  letter-spacing: -1.7px;
   margin-top: 25px;
   color: #f0f1df;
 }
@@ -1123,30 +1128,31 @@ button:hover:not(:disabled) {
   color: #b7c894;
 }
 .story-copy > p {
-  font-size: 12px;
-  line-height: 2.05;
-  color: #a1b69b;
+  font-size: 13px;
+  line-height: 1.95;
+  color: #b0c0a9;
   margin-top: 22px;
 }
 .story-note {
   max-width: 360px;
   padding: 24px 25px 18px;
-  background: #f3f3df;
+  background: #f1f4e9;
   color: #556b48;
-  border-radius: 4px 14px 14px 14px;
-  box-shadow: 10px 13px 0 #1f443d24;
-  margin-top: 49px;
-  transform: rotate(-2deg);
+  border: 1px solid #dce6d2;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px #1f443d18;
+  margin-top: 42px;
 }
 .story-note-label {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
-  color: #9b9e79;
+  font-size: 9px;
+  letter-spacing: 1.1px;
+  color: #849674;
 }
 .story-note h3 {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.75;
   letter-spacing: -0.55px;
   font-weight: 500;
@@ -1161,7 +1167,7 @@ button:hover:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 8px;
+  font-size: 9px;
   color: #98a081;
 }
 .story-note-bottom > svg {
@@ -1905,7 +1911,7 @@ button:hover:not(:disabled) {
   .sidebar .brand-symbol {
     width: 31px;
     height: 33px;
-    border-radius: 9px 9px 9px 3px;
+    border-radius: 7px;
   }
   .sidebar .brand-symbol svg {
     width: 18px;
@@ -1917,7 +1923,7 @@ button:hover:not(:disabled) {
   }
   .sidebar .brand-name > span {
     font-size: 6px;
-    letter-spacing: 1.5px;
+    letter-spacing: 0.65px;
     margin-top: 2px;
   }
   .workspace-nav {

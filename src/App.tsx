@@ -123,10 +123,13 @@ function Brand() {
   return (
     <div className="brand">
       <span className="brand-symbol">
-        <NotebookPen size={21} strokeWidth={1.8} />
+        <svg width="23" height="23" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M8 7v18h17" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 8h9M16 13h9M16 18h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity=".75" />
+        </svg>
       </span>
       <span className="brand-name">
-        모아노트<span>MOA NOTES</span>
+        로반 메모보드<span>LAWBAHN MEMOBOARD</span>
       </span>
     </div>
   );
@@ -261,32 +264,32 @@ function AuthScreen({
       <section className="auth-story">
         <Brand />
         <div className="story-copy">
-          <div className="eyebrow">A SPACE FOR SHARED THOUGHTS</div>
+          <div className="eyebrow">LAWBAHN TEAM WORKSPACE</div>
           <h1>
-            생각을 모으고,
+            함께 기록하고,
             <br />
-            함께 이어가세요<span>.</span>
+            바로 이어가세요<span>.</span>
           </h1>
           <p>
-            작은 아이디어부터 중요한 이야기까지.
+            회의 내용과 업무 메모를 한곳에.
             <br />
-            우리의 기록이 하나의 공간에서 이어집니다.
+            승인된 멤버와 필요한 기록을 공유하세요.
           </p>
           <div className="story-note">
             <span className="story-note-label">
-              <FileText size={16} /> 우리 팀의 새로운 시작
+              <FileText size={16} /> LAWBAHN WORKSPACE
             </span>
             <h3>
-              좋은 생각은 함께 나눌 때<br />더 멀리 나아갑니다.
+              오늘의 업무를 기록하고,<br />다음 업무를 함께 준비하세요.
             </h3>
             <div className="story-note-rule" />
             <div className="story-note-bottom">
               <span className="mini-avatars">
-                <i>모</i>
-                <i>아</i>
-                <i>노</i>
+                <i>로</i>
+                <i>반</i>
+                <i>팀</i>
               </span>
-              <span>하나의 메모, 함께하는 기록</span>
+              <span>작성 · 공유 · 이력 관리</span>
               <CheckCircle2 size={17} />
             </div>
           </div>
@@ -301,7 +304,7 @@ function AuthScreen({
           <Brand />
         </div>
         <div className="auth-card">
-          <span className="section-kicker">WELCOME TO MOA</span>
+          <span className="section-kicker">LAWBAHN MEMOBOARD</span>
           <h2>{title}</h2>
           <p className="auth-description">
             {recovery
@@ -444,8 +447,8 @@ function AuthScreen({
           </p>
         </div>
         <div className="auth-copyright">
-          © {new Date().getFullYear()} 모아노트{" "}
-          <span>함께 쌓아가는 생각의 공간</span>
+          © {new Date().getFullYear()} LAWBAHN{" "}
+          <span>로반의 기록을 잇는 공유 메모</span>
         </div>
       </section>
     </main>
@@ -456,7 +459,7 @@ const demoNotes: Note[] = [
   {
     id: "demo-welcome",
     title: "함께 쓰는 첫 번째 메모",
-    body: "반가워요, 모아노트에 오신 것을 환영해요.\n\n우리 팀의 생각과 이야기가 모이는 공간입니다.\n회의에서 떠오른 아이디어, 놓치고 싶지 않은 할 일, 함께 기억할 내용을 편하게 남겨 보세요.\n\n이렇게 시작해 보세요\n\n01.  왼쪽의 + 버튼으로 새로운 메모를 만들어요.\n02.  내용을 작성한 뒤 ‘저장’을 눌러 공유해요.\n03.  중요한 메모는 상단에 고정해 두세요.\n\n함께 편집할 때도 안심하세요.\n다른 멤버의 변경 사항을 확인하고, 이전 기록도 다시 살펴볼 수 있어요.\n\n작은 기록이 모여, 우리의 다음을 만듭니다.",
+    body: "로반 메모보드에 오신 것을 환영합니다.\n\n회의 내용과 업무 메모를 팀과 공유하는 공간입니다.\n함께 확인할 사항, 진행 중인 업무, 다음 회의에서 논의할 내용을 남겨 보세요.\n\n이렇게 시작해 보세요\n\n01.  왼쪽의 + 버튼으로 새로운 메모를 만들어요.\n02.  내용을 작성한 뒤 ‘저장’을 눌러 공유해요.\n03.  중요한 메모는 상단에 고정해 두세요.\n\n함께 편집할 때도 안심하세요.\n다른 멤버의 변경 사항을 확인하고, 이전 기록도 다시 살펴볼 수 있어요.\n\n필요한 기록을 한곳에, 로반 메모보드.",
     version: 3,
     is_pinned: true,
     archived_at: null,
@@ -1194,7 +1197,7 @@ export default function App() {
           </div>
         </div>
         <span className="gate-caption">
-          모아노트 · 함께 쌓아가는 생각의 공간
+          로반 메모보드 · 필요한 기록을 한곳에
         </span>
       </main>
     );
@@ -1202,7 +1205,7 @@ export default function App() {
     return (
       <div className="full-loading">
         <Brand />
-        <Loading text="모아노트에 연결하고 있어요" />
+        <Loading text="로반 메모보드에 연결하고 있어요" />
       </div>
     );
   if ((!user && !demo) || recovery)
@@ -1315,7 +1318,7 @@ export default function App() {
             <Users size={20} />
           </span>
           <div>
-            <strong>우리의 기록 공간</strong>
+            <strong>로반 워크스페이스</strong>
             <span>공유 워크스페이스</span>
           </div>
           <ChevronRight size={14} />
