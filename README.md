@@ -51,7 +51,7 @@ VITE_SUPABASE_ANON_KEY=프로젝트의_publishable_또는_anon_키
 
 ## GitHub와 Vercel
 
-1. GitHub에 비공개 저장소를 생성하고 이 디렉터리를 커밋·푸시합니다. `.env*` 실제 값과 `.vercel`은 추적에서 제외됩니다.
+1. 이 디렉터리를 확정된 공개 GitHub 저장소 [hahn27541-pixel/gaeun](https://github.com/hahn27541-pixel/gaeun)에 커밋·업로드합니다. `.env*` 실제 값과 `.vercel`은 추적에서 제외됩니다.
 2. Vercel에서 해당 저장소를 Import합니다. Framework는 Vite, Build Command는 `pnpm build`, Output Directory는 `dist`입니다.
 3. 위 환경변수 두 개와 `ENABLE_EXPERIMENTAL_COREPACK=1`을 Production에 등록하고 배포합니다. Preview를 사용할 경우 테스트 DB를 별도로 연결하는 것을 권장합니다.
 4. 기본 `vercel.app` 주소를 사용합니다. 환경변수를 바꾸면 재배포해야 합니다.
