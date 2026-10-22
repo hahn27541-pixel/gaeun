@@ -35,10 +35,14 @@ const mocks = vi.hoisted(() => ({
   saveNote: vi.fn(),
   onAuthStateChange: vi.fn(),
   getSession: vi.fn(),
+  signUp: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
+  resend: vi.fn(),
   unsubscribe: vi.fn(),
   channel: vi.fn(),
   removeChannel: vi.fn(),
   state: {
+    emailDeliveryEnabled: true,
     access: { is_admin: false, status: "approved", email_verified: true },
     notes: [] as Note[],
   },
@@ -46,6 +50,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../src/lib/supabase", () => ({
   isConfigured: true,
+  get emailDeliveryEnabled() {
+    return mocks.state.emailDeliveryEnabled;
+  },
   supabase: {
     rpc: mocks.rpc,
     from: mocks.from,
@@ -54,6 +61,9 @@ vi.mock("../src/lib/supabase", () => ({
     auth: {
       onAuthStateChange: mocks.onAuthStateChange,
       getSession: mocks.getSession,
+      signUp: mocks.signUp,
+      resetPasswordForEmail: mocks.resetPasswordForEmail,
+      resend: mocks.resend,
     },
   },
 }));
@@ -102,6 +112,7 @@ async function openInitialNote(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  mocks.state.emailDeliveryEnabled = true;
   mocks.state.access = {
     is_admin: false,
     status: "approved",
@@ -161,13 +172,82 @@ beforeEach(() => {
   });
 });
 
+describe("optional no-email interface", () => {
+  function signedOut() {
+    mocks.onAuthStateChange.mockImplementation((callback) => {
+      callback("INITIAL_SESSION", null);
+      return { data: { subscription: { unsubscribe: mocks.unsubscribe } } };
+    });
+    mocks.getSession.mockResolvedValue({ data: { session: null }, error: null });
+  }
+
+  it("keeps the normal email signup and password-reset entry point when enabled", async () => {
+    signedOut();
+    mocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
+    const user = userEvent.setup();
+    render(<App />);
+    expect(await screen.findByRole("button", { name: "비밀번호를 잊으셨나요?" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "회원가입", exact: true }));
+    await user.type(screen.getByRole("textbox", { name: "이름" }), "새 멤버");
+    await user.type(screen.getByRole("textbox", { name: "이메일" }), "new@example.com");
+    await user.type(screen.getByLabelText("비밀번호"), "a-strong-password");
+    await user.click(screen.getByRole("button", { name: "가입 신청하기" }));
+    expect(await screen.findByText(/확인 메일을 보냈어요/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "확인 메일 다시 보내기" })).toBeTruthy();
+  });
+
+  it("shows an approval message for session-returning signup without offering email delivery when disabled", async () => {
+    mocks.state.emailDeliveryEnabled = false;
+    signedOut();
+    mocks.signUp.mockResolvedValue({ data: { session: { user: signedInUser } }, error: null });
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("heading", { name: "다시 만나서 반가워요" });
+    expect(screen.queryByRole("button", { name: "비밀번호를 잊으셨나요?" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "회원가입", exact: true }));
+    expect(screen.getByText("회원가입 후 관리자 승인을 받아 함께할 수 있어요.")).toBeTruthy();
+    await user.type(screen.getByRole("textbox", { name: "이름" }), "새 멤버");
+    await user.type(screen.getByRole("textbox", { name: "이메일" }), "new@example.com");
+    await user.type(screen.getByLabelText("비밀번호"), "a-strong-password");
+    await user.click(screen.getByRole("button", { name: "가입 신청하기" }));
+    expect(await screen.findByText("가입 신청이 완료되었어요. 관리자의 승인 후 메모를 이용할 수 있습니다.")).toBeTruthy();
+    expect(screen.queryByText(/확인 메일을 보냈어요/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "확인 메일 다시 보내기" })).toBeNull();
+    expect(mocks.resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(mocks.resend).not.toHaveBeenCalled();
+    expect(mocks.from).not.toHaveBeenCalledWith("notes");
+  });
+
+  it("does not describe an auto-confirmed member's email as ownership-verified", async () => {
+    mocks.state.emailDeliveryEnabled = false;
+    mocks.state.access.is_admin = true;
+    mocks.rpc.mockImplementation((name: string) => {
+      if (name === "current_access") return Promise.resolve({ data: { ...mocks.state.access }, error: null });
+      if (name === "list_members") return Promise.resolve({
+        data: [{ id: "new-member", display_name: "가입자", email: "claimed@example.com", status: "pending", email_verified: true, is_admin: false, created_at: "2026-10-22T00:00:00Z" }],
+        error: null,
+      });
+      throw new Error("Unexpected RPC: " + name);
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: /멤버 관리/ }));
+    expect(await screen.findByText(/이메일 소유 확인 별도/)).toBeTruthy();
+    expect(screen.getByText(/가입자를 별도로 확인한 후 승인해 주세요/)).toBeTruthy();
+    expect(screen.queryByText(/이메일 인증 완료/)).toBeNull();
+    expect(screen.queryByText(/이메일 미인증/)).toBeNull();
+  });
+});
+
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 
 describe("approval and collaborative editing", () => {
-  it("keeps a pending member behind the approval screen without requesting private notes", async () => {
+  it.each([true, false])("keeps a pending member behind the approval screen without requesting private notes (email delivery: %s)", async (emailDeliveryEnabled) => {
+    mocks.state.emailDeliveryEnabled = emailDeliveryEnabled;
     mocks.state.access.status = "pending";
     const user = userEvent.setup();
     render(<App />);
